@@ -1,0 +1,293 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2908
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;\f1\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red250\green0\blue7;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c99643\c0\c0;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww29200\viewh17740\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs37\fsmilli18667 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 PS : MQTT Server - requires cellular data \'a0 \'a0 \cf3 \strokec3 ON ESP32
+\f1\fs24 \cf0 \strokec2 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs32 \cf0 #include <WiFi.h>
+\f1\fs24 \
+
+\f0\fs32 #include <PubSubClient.h>
+\f1\fs24 \
+
+\f0\fs32 #include "DHT.h"
+\f1\fs24 \
+\
+
+\f0\fs32 // ---------- WIFI ----------
+\f1\fs24 \
+
+\f0\fs32 const char* ssid = "Microembedded";
+\f1\fs24 \
+
+\f0\fs32 const char* password = "Micro@123";
+\f1\fs24 \
+\
+
+\f0\fs32 // ---------- MQTT ----------
+\f1\fs24 \
+
+\f0\fs32 const char* mqtt_server = "mqtt3.thingspeak.com";
+\f1\fs24 \
+
+\f0\fs32 const int mqtt_port = 1883;
+\f1\fs24 \
+
+\f0\fs32 const char* mqtt_topic = "channels/3232551/publish";
+\f1\fs24 \
+\
+
+\f0\fs32 char* mqtt_clientID = "KAQDBAc5MDwkIgwWEDQ0Fgs";
+\f1\fs24 \
+
+\f0\fs32 char* mqtt_username = "KAQDBAc5MDwkIgwWEDQ0Fgs";
+\f1\fs24 \
+
+\f0\fs32 char* mqtt_password = "Gn1KhmlwdFZs+L+Rf2pPylrA";
+\f1\fs24 \
+\
+
+\f0\fs32 // ---------- DHT ----------
+\f1\fs24 \
+
+\f0\fs32 #define DHTPIN 4
+\f1\fs24 \
+
+\f0\fs32 #define DHTTYPE DHT11
+\f1\fs24 \
+\
+
+\f0\fs32 WiFiClient espClient;
+\f1\fs24 \
+
+\f0\fs32 PubSubClient client(espClient);
+\f1\fs24 \
+
+\f0\fs32 DHT dht(DHTPIN, DHTTYPE);
+\f1\fs24 \
+\
+
+\f0\fs32 void setupWiFi() \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0WiFi.begin(ssid, password);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0Serial.print("Connecting to WiFi");
+\f1\fs24 \
+\
+
+\f0\fs32 \'a0\'a0while (WiFi.status() != WL_CONNECTED) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0delay(500);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.print(".");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0Serial.println("\\nWiFi connected");
+\f1\fs24 \
+
+\f0\fs32 \}
+\f1\fs24 \
+\
+
+\f0\fs32 void reconnectMQTT() \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0while (!client.connected()) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.print("Connecting to MQTT...");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0if (client.connect(mqtt_clientID,mqtt_username,mqtt_password)) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\'a0\'a0Serial.println("connected");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\} else \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\'a0\'a0Serial.print("failed, rc=");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\'a0\'a0Serial.print(client.state());
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\'a0\'a0delay(2000);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \}
+\f1\fs24 \
+\
+
+\f0\fs32 void setup() \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0Serial.begin(115200);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0dht.begin();
+\f1\fs24 \
+\
+
+\f0\fs32 \'a0\'a0setupWiFi();
+\f1\fs24 \
+\
+
+\f0\fs32 \'a0\'a0client.setServer(mqtt_server, mqtt_port);
+\f1\fs24 \
+
+\f0\fs32 \}
+\f1\fs24 \
+\
+
+\f0\fs32 void loop() \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0if (!client.connected()) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0reconnectMQTT();
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0client.loop();
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0
+\f1\fs24 \
+
+\f0\fs32 //\'a0 char payload[10];
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0float humidity = dht.readHumidity();
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0float temperature = dht.readTemperature();
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0String payload="field1=";
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0payload+=humidity;
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0payload+="&field2=";
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0payload+=temperature;
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0payload+="&status=MQTTPUBLISH";
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0
+\f1\fs24 \
+\
+
+\f0\fs32 \'a0\'a0if (isnan(humidity)) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.println("DHT read failed");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0delay(2000);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0return;
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0
+\f1\fs24 \
+
+\f0\fs32 if (client.connect(mqtt_clientID,mqtt_username,mqtt_password)) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.println("Connected to MQTT broker");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.print("Topic is: ");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.println(mqtt_topic);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\}
+\f1\fs24 \
+\
+
+\f0\fs32 \'a0\'a0if (client.connected())\{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.print("Sending payload: ");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0Serial.println(payload);
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0if (client.publish(mqtt_topic, (char*) payload.c_str())) \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\'a0\'a0Serial.println("Publish ok");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0else \{
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\'a0\'a0Serial.println("Publish failed");
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0\'a0\'a0\}
+\f1\fs24 \
+
+\f0\fs32 \'a0\'a0client.disconnect();
+\f1\fs24 \
+\
+
+\f0\fs32 \'a0\'a0delay(20000);\'a0 // DHT11 + network friendly
+\f1\fs24 \
+
+\f0\fs32 \}
+\f1\fs24 \
+
+\f0\fs32 \}
+\f1\fs24 \
+\
+\
+\
+}
